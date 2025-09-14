@@ -12,27 +12,27 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-image: url('/Genesisback.jpg'); /* Ensure in public/ for Vercel */
+            background-image: url('/Genesisback.jpg'); /* Ensure Genesisback.jpg is in public/ */
             background-size: cover;
             background-position: center;
             font-family: Arial, sans-serif;
             color: white;
             text-shadow: 1px 1px 2px black;
-            position: relative; /* Ensure body can contain fixed elements */
+            position: relative;
         }
         .container {
             text-align: center;
             position: relative;
             z-index: 1;
-            transform: translateY(-20vh); /* Move content up by 20% of viewport height */
+            transform: translateY(-20vh);
         }
         .title-image {
-            position: fixed; /* Pinned to bottom */
+            position: fixed;
             bottom: 0;
             left: 0;
-            width: 100%; /* Stretch to full width */
-            height: auto; /* Maintain aspect ratio */
-            z-index: 0; /* Keep behind content */
+            width: 100%;
+            height: auto;
+            z-index: 0;
         }
         h1 {
             font-size: 3em;
@@ -54,7 +54,7 @@
             position: absolute;
             width: 180px;
             height: 180px;
-            background: #222; /* Dark background for inner circle */
+            background: #222;
             border-radius: 50%;
         }
         .progress-text {
@@ -143,14 +143,14 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
-    <img src="/Genesishead.png" alt="Title Image" class="title-image"> <!-- Ensure in public/ for Vercel -->
+    <img src="/Genesishead.png" alt="Title Image" class="title-image" onerror="this.alt='Title image failed to load. Check if Genesishead.png is in public/'"> <!-- Ensure in public/ -->
     <div class="container">
         <h1>Genesis NFT Mint</h1>
         <div class="radial-progress" id="radial">
             <div class="progress-text" id="progress-text">0 / 0</div>
         </div>
         <div class="nft-section">
-            <img src="/GenesisNFT1.png" alt="NFT Image" class="nft-image"> <!-- Ensure in public/ for Vercel -->
+            <img src="/GenesisNFT1.png" alt="NFT Image" class="nft-image" onerror="this.alt='NFT image failed to load. Check if GenesisNFT1.png is in public/'"> <!-- Ensure in public/ -->
             <div class="mint-controls">
                 <label for="quantity">Select Quantity (1-100):</label>
                 <input type="range" id="quantity" min="1" max="100" value="1">
