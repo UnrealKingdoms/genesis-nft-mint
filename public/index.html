@@ -55,7 +55,7 @@
             width: 180px;
             height: 180px;
             background: #222;
-            border-radius: 50%;
+            border-radius: 50;
         }
         .progress-text {
             position: relative;
@@ -130,9 +130,20 @@
             font-size: 2em;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js" onerror="loadEthersFallback()"></script>
+    <script>
+        function loadEthersFallback() {
+            console.log('ethers.js CDN failed, trying local fallback');
+            var script = document.createElement('script');
+            script.src = '../lib/ethers-6.7.0.umd.min.js';
+            script.onerror = function() {
+                console.error('Failed to load ethers.js from local');
+                document.getElementById('message').innerText = 'Failed to load ethers.js. Ensure /lib/ethers-6.7.0.umd.min.js is in the project root.';
+            };
+            document.head.appendChild(script);
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethers5@2.0.0-beta.4/dist/provider.umd.min.js"></script>
-    <script src="../lib/ethers-6.7.0.umd.min.js" onerror="document.getElementById('message').innerText='Failed to load ethers.js. Ensure /lib/ethers-6.7.0.umd.min.js is in the project root.'"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -183,8 +194,9 @@
 
         async function init() {
             console.log('init: ethers defined?', typeof ethers !== 'undefined');
+            console.log('init: WalletConnectProvider defined?', typeof WalletConnectProvider !== 'undefined');
             if (typeof ethers === 'undefined') {
-                showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
+                showMessage('Error: ethers.js library failed to load.');
                 console.error('init: ethers undefined');
                 return;
             }
@@ -231,7 +243,7 @@
         async function connectWallet() {
             console.log('connectWallet: Called');
             if (typeof ethers === 'undefined') {
-                showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
+                showMessage('Error: ethers.js library failed to load.');
                 console.error('connectWallet: ethers undefined');
                 return;
             }
@@ -239,12 +251,16 @@
             console.log('connectWallet: Selected wallet type', walletType);
 
             if (walletType === 'walletconnect') {
+                if (typeof WalletConnectProvider === 'undefined') {
+                    showMessage('Error: WalletConnect library failed to load.');
+                    console.error('connectWallet: WalletConnectProvider undefined');
+                    return;
+                }
                 try {
                     console.log('connectWallet: Initializing WalletConnect');
-                    // Initialize WalletConnect v2 provider
                     walletConnectProvider = new WalletConnectProvider({
                         infuraId: '2GQEuel4OBbYmZKDFtjGoOA7ZXv',
-                        chainId: 1, // Ethereum Mainnet
+                        chainId: 1,
                         metadata: {
                             name: 'Genesis NFT Mint',
                             description: 'Mint Genesis NFTs',
@@ -340,7 +356,7 @@
         setTimeout(() => {
             console.log('Main script: Checking ethers after delay');
             if (typeof ethers === 'undefined') {
-                showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
+                showMessage('Error: ethers.js library failed to load.');
                 console.error('Main script: ethers undefined');
             } else {
                 init();
