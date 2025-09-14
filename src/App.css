@@ -1,0 +1,148 @@
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url("/Genesisback.jpg");
+  background-size: cover;
+  background-position: center;
+  font-family: Arial, sans-serif;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+  position: relative;
+}
+
+.title-image {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  z-index: 0;
+}
+
+.container {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  transform: translateY(-20vh);
+}
+
+h1 {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.radial-progress {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  background: conic-gradient(
+    #4caf50 0% var(--progress),
+    #ddd var(--progress) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px;
+  z-index: 1;
+}
+
+.radial-progress::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 160px;
+  height: 160px;
+  background: #222;
+  border: 2px solid #4caf50;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.progress-text {
+  position: relative;
+  z-index: 2;
+  font-size: 1.5em;
+}
+
+.nft-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.nft-image {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.mint-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+input[type="range"] {
+  width: 200px;
+}
+
+#quantity-value {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+#total-price {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1.2em;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 5px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#message {
+  margin-top: 20px;
+  font-size: 1.2em;
+  color: red;
+}
+
+#congrats {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  z-index: 1000;
+}
+
+#congrats h2 {
+  font-size: 2em;
+}
