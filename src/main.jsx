@@ -21,13 +21,11 @@ const config = createConfig({
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-            <WagmiProvider config={config}>
-                <RainbowKitProvider chains={[mainnet]}>
-                    <App />
-                </RainbowKitProvider>
-            </WagmiProvider>
-        </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
+            <RainbowKitProvider chains={[mainnet]}>
+                <App />
+            </RainbowKitProvider>
+        </WagmiProvider>
+    </QueryClientProvider>
 );

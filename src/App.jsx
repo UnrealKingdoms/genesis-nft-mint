@@ -45,6 +45,7 @@ function App() {
     const { isSuccess } = useWaitForTransactionReceipt({ hash });
 
     useEffect(() => {
+        console.log('App: Running useEffect');
         if (isConnected) {
             console.log('App: Wallet connected', address);
             setMessage('Wallet connected!');
@@ -74,6 +75,7 @@ function App() {
     }, [isConnected, isSuccess, isError, error, address]);
 
     const handleMint = () => {
+        console.log('mintNFT: Called with quantity', quantity);
         if (!isConnected) {
             setMessage('Please connect your wallet first.');
             console.error('mintNFT: Wallet not connected');
