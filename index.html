@@ -12,7 +12,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-image: url('Genesisback.jpg'); /* Replace with actual background image URL */
+            background-image: url('/Genesisback.jpg'); /* Ensure in public/ for Vercel */
             background-size: cover;
             background-position: center;
             font-family: Arial, sans-serif;
@@ -125,14 +125,15 @@
     </style>
     <script>
         // Fallback for ethers.js: Try CDN first, then local
+        // Ensure lib/ethers-6.7.0.umd.min.js is in the GitHub repo under /lib
         (function() {
             var script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js';
             script.onerror = function() {
                 var localScript = document.createElement('script');
-                localScript.src = 'lib/ethers-6.7.0.umd.min.js';
+                localScript.src = '/lib/ethers-6.7.0.umd.min.js';
                 localScript.onerror = function() {
-                    document.getElementById('message').innerText = 'Failed to load ethers.js from both CDN and local. Ensure lib/ethers-6.7.0.umd.min.js exists or check your network.';
+                    document.getElementById('message').innerText = 'Failed to load ethers.js from both CDN and local. Ensure /lib/ethers-6.7.0.umd.min.js exists in your Vercel project.';
                 };
                 document.head.appendChild(localScript);
             };
@@ -142,14 +143,14 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
-    <img src="Genesishead.png" alt="Title Image" class="title-image"> <!-- Moved to bottom -->
+    <img src="/Genesishead.png" alt="Title Image" class="title-image"> <!-- Ensure in public/ for Vercel -->
     <div class="container">
         <h1>Genesis NFT Mint</h1>
         <div class="radial-progress" id="radial">
             <div class="progress-text" id="progress-text">0 / 0</div>
         </div>
         <div class="nft-section">
-            <img src="GenesisNFT1.png" alt="NFT Image" class="nft-image"> <!-- Replace with actual NFT image URL -->
+            <img src="/GenesisNFT1.png" alt="NFT Image" class="nft-image"> <!-- Ensure in public/ for Vercel -->
             <div class="mint-controls">
                 <label for="quantity">Select Quantity (1-100):</label>
                 <input type="range" id="quantity" min="1" max="100" value="1">
@@ -182,14 +183,14 @@
 
         async function init() {
             if (typeof ethers === 'undefined') {
-                showMessage('Error: ethers.js library failed to load. Please serve the page via a local server (e.g., npx http-server) or check your network.');
+                showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
                 return;
             }
-            // Update provider URL based on the network where the contract is deployed
-            // Mainnet: https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY
-            // Sepolia: https://rpc.sepolia.org
-            // Goerli: https://rpc.goerli.dev
-            const readProvider = new ethers.JsonRpcProvider('https://rpc.sepolia.org'); // Changed to Sepolia for testing; update as needed
+            // CRITICAL: You MUST update the provider URL to match the network where 0xfd39CD1F87a237C628C42c0Efde88AC02654B775 is deployed
+            // - Mainnet: https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY (sign up at https://infura.io)
+            // - Sepolia: https://rpc.sepolia.org
+            // - Goerli: https://rpc.goerli.dev
+            const readProvider = new ethers.JsonRpcProvider('https://rpc.sepolia.org'); // Update this!
             readContract = new ethers.Contract(contractAddress, abi, readProvider);
             try {
                 const supply = await readContract.totalSupply();
@@ -199,9 +200,9 @@
                 updateTotalPrice();
             } catch (error) {
                 if (error.code === 'CALL_EXCEPTION') {
-                    showMessage('Error: Contract not found on this network or network issue. Please check the contract address and network (e.g., Mainnet, Sepolia).');
+                    showMessage('Error: Contract not found on this network. Confirm the network (Mainnet, Sepolia, Goerli) for 0xfd39CD1F87a237C628C42c0Efde88AC02654B775.');
                 } else if (error.code === 'NETWORK_ERROR') {
-                    showMessage('Error: Failed to connect to the blockchain network. Please check your provider URL or network connectivity.');
+                    showMessage('Error: Failed to connect to the blockchain network. Check your provider URL and network connectivity.');
                 } else {
                     showMessage('Error loading contract data: ' + (error.reason || error.message));
                 }
@@ -223,7 +224,7 @@
 
         async function connectWallet() {
             if (typeof ethers === 'undefined') {
-                showMessage('Error: ethers.js library failed to load. Please serve the page via a local server (e.g., npx http-server) or check your network.');
+                showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
                 return;
             }
             if (window.ethereum) {
@@ -284,7 +285,7 @@
 
         // Check if ethers is loaded before initializing
         if (typeof ethers === 'undefined') {
-            showMessage('Error: ethers.js library failed to load. Please serve the page via a local server (e.g., npx http-server) or check your network.');
+            showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
         } else {
             init();
         }
