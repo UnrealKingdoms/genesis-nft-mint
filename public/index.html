@@ -142,7 +142,19 @@
             document.head.appendChild(script);
         }
     </script>
-    <script src="https://unpkg.com/web3modal@1.9.14/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.14/dist/index.min.js" onerror="loadWeb3ModalFallback()"></script>
+    <script>
+        function loadWeb3ModalFallback() {
+            console.log('Web3Modal CDN failed, trying local fallback');
+            var script = document.createElement('script');
+            script.src = '../lib/web3modal-1.9.14.min.js';
+            script.onerror = function() {
+                console.error('Failed to load Web3Modal from local');
+                document.getElementById('message').innerText = 'Failed to load Web3Modal. Ensure /lib/web3modal-1.9.14.min.js is in the project root.';
+            };
+            document.head.appendChild(script);
+        }
+    </script>
     <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
