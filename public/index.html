@@ -128,13 +128,7 @@
         #congrats h2 {
             font-size: 2em;
         }
-        #root {
-            text-align: center;
-        }
     </style>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js" onerror="loadEthersFallback()"></script>
     <script>
         function loadEthersFallback() {
             console.log('ethers.js CDN failed, trying local fallback');
@@ -146,12 +140,21 @@
             };
             document.head.appendChild(script);
         }
+
+        function loadWeb3ModalFallback() {
+            console.log('Web3Modal CDN failed, trying local fallback');
+            var script = document.createElement('script');
+            script.src = '../lib/web3modal-ethers-3.5.4.min.js';
+            script.onerror = function() {
+                console.error('Failed to load Web3Modal from local');
+                document.getElementById('message').innerText = 'Failed to load Web3Modal. Ensure /lib/web3modal-ethers-3.5.4.min.js is in the project root.';
+            };
+            document.head.appendChild(script);
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/viem@2.21.31/dist/umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tanstack/react-query@5.59.15/dist/umd/index.production.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/wagmi@2.12.13/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@rainbow-me/rainbowkit@2.1.5/dist/index.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rainbow-me/rainbowkit@2.1.5/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js" onerror="loadEthersFallback()"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@web3modal/ethers@3.5.4/dist/index.js" onerror="loadWeb3ModalFallback()"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
     <img src="Genesishead.png" alt="Title Image" class="title-image" onerror="this.alt='Title image failed to load. Check if Genesishead.png is in public/'">
@@ -167,7 +170,7 @@
                 <input type="range" id="quantity" min="1" max="100" value="1">
                 <span id="quantity-value">1</span>
                 <p>Total Price: <span id="total-price">0 ETH</span></p>
-                <div id="root"></div>
+                <button id="connect-button" onclick="connectWallet()">Connect Wallet</button>
                 <button id="mint-button" style="display: none;" onclick="mintNFT()">Mint</button>
             </div>
         </div>
@@ -189,15 +192,14 @@
         let signer;
         let contract;
         let readContract;
+        let web3Modal;
         let mintPrice = 0n;
         let maxSupply = 0;
         let isConnected = false;
 
         async function init() {
             console.log('init: ethers defined?', typeof ethers !== 'undefined');
-            console.log('init: RainbowKit defined?', typeof RainbowKit !== 'undefined');
-            console.log('init: wagmi defined?', typeof wagmi !== 'undefined');
-            console.log('init: viem defined?', typeof viem !== 'undefined');
+            console.log('init: Web3Modal defined?', typeof window.Web3Modal !== 'undefined');
             if (typeof ethers === 'undefined') {
                 showMessage('Error: ethers.js library failed to load.');
                 console.error('init: ethers undefined');
@@ -241,6 +243,55 @@
             document.getElementById('quantity-value').innerText = quantity;
             const total = BigInt(quantity) * mintPrice;
             document.getElementById('total-price').innerText = (typeof ethers !== 'undefined' ? ethers.formatEther(total) : '0') + ' ETH';
+        }
+
+        async function connectWallet() {
+            console.log('connectWallet: Called');
+            if (typeof ethers === 'undefined') {
+                showMessage('Error: ethers.js library failed to load.');
+                console.error('connectWallet: ethers undefined');
+                return;
+            }
+            if (typeof window.Web3Modal === 'undefined') {
+                showMessage('Error: Web3Modal library failed to load.');
+                console.error('connectWallet: Web3Modal undefined');
+                return;
+            }
+            try {
+                console.log('connectWallet: Initializing Web3Modal');
+                web3Modal = window.Web3Modal.default({
+                    projectId: '1b283111322d4899186ca0e1474dbf35',
+                    metadata: {
+                        name: 'Genesis NFT Mint',
+                        description: 'Mint Genesis NFTs',
+                        url: window.location.href,
+                        icons: ['https://genesis-nft-mint.vercel.app/GenesisNFT1.png']
+                    }
+                });
+                const providerOptions = {
+                    chains: [{
+                        chainId: 1,
+                        name: 'Ethereum',
+                        currency: 'ETH',
+                        explorerUrl: 'https://etherscan.io',
+                        rpcUrl: 'https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv'
+                    }]
+                };
+                await web3Modal.openModal();
+                const web3Provider = await web3Modal.connect(providerOptions);
+                console.log('connectWallet: Web3Modal connected', web3Provider);
+                provider = new ethers.BrowserProvider(web3Provider);
+                signer = await provider.getSigner();
+                contract = new ethers.Contract(contractAddress, abi, signer);
+                isConnected = true;
+                document.getElementById('connect-button').style.display = 'none';
+                document.getElementById('mint-button').style.display = 'block';
+                showMessage('Wallet connected!');
+                console.log('connectWallet: Wallet connected');
+            } catch (error) {
+                showMessage('Wallet connection error: ' + error.message);
+                console.error('connectWallet: Error', error);
+            }
         }
 
         async function mintNFT() {
@@ -292,101 +343,6 @@
         }
 
         document.getElementById('quantity').addEventListener('input', updateTotalPrice);
-
-        // RainbowKit and wagmi setup
-        const { createRoot } = ReactDOM;
-        const { useAccount, useContractWrite, useWaitForTransaction } = wagmi;
-        const { ConnectButton } = RainbowKit;
-
-        const chains = [{
-            id: 1,
-            name: 'Ethereum',
-            network: 'mainnet',
-            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv'] } },
-            blockExplorers: { default: { name: 'Etherscan', url: 'https://etherscan.io' } }
-        }];
-
-        const config = wagmi.createConfig({
-            chains,
-            connectors: [
-                RainbowKit.injectedWallet({ chains }),
-                RainbowKit.walletConnectWallet({ projectId: '1b283111322d4899186ca0e1474dbf35', chains })
-            ],
-            transports: {
-                [chains[0].id]: viem.http()
-            }
-        });
-
-        function App() {
-            const { address, isConnected: connected } = useAccount();
-            const { data: hash, write, isLoading, isError, error } = useContractWrite({
-                address: contractAddress,
-                abi: abi,
-                functionName: 'mint'
-            });
-            const { isSuccess } = useWaitForTransaction({ hash });
-
-            React.useEffect(() => {
-                if (connected) {
-                    isConnected = true;
-                    document.getElementById('connect-button').style.display = 'none';
-                    document.getElementById('mint-button').style.display = 'block';
-                    showMessage('Wallet connected!');
-                    console.log('App: Wallet connected', address);
-                    provider = new ethers.BrowserProvider(window.ethereum);
-                    provider.getSigner().then(s => {
-                        signer = s;
-                        contract = new ethers.Contract(contractAddress, abi, signer);
-                    });
-                } else {
-                    isConnected = false;
-                    document.getElementById('connect-button').style.display = 'block';
-                    document.getElementById('mint-button').style.display = 'none';
-                    showMessage('');
-                }
-                if (isSuccess) {
-                    showCelebration();
-                    readContract.totalSupply().then(newSupply => {
-                        console.log('App: New supply', newSupply.toString());
-                        updateProgress(Number(newSupply));
-                        showMessage('Mint successful!');
-                    });
-                }
-                if (isError) {
-                    if (error.message.includes('SoldOut')) {
-                        showMessage('Error: The NFT collection is sold out.');
-                    } else {
-                        showMessage('Mint error: ' + error.message);
-                    }
-                    console.error('App: Mint error', error);
-                }
-            }, [connected, isSuccess, isError, error]);
-
-            return React.createElement(
-                'div',
-                { id: 'connect-button' },
-                React.createElement(ConnectButton)
-            );
-        }
-
-        const queryClient = new window.ReactQuery.QueryClient();
-        const root = createRoot(document.getElementById('root'));
-        root.render(
-            React.createElement(
-                window.ReactQuery.QueryClientProvider,
-                { client: queryClient },
-                React.createElement(
-                    wagmi.WagmiProvider,
-                    { config: config },
-                    React.createElement(
-                        RainbowKit.RainbowKitProvider,
-                        { chains: chains },
-                        React.createElement(App)
-                    )
-                )
-            )
-        );
 
         console.log('Main script: Starting');
         setTimeout(() => {
