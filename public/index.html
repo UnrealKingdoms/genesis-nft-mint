@@ -99,9 +99,16 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            margin: 5px;
         }
         button:hover {
             background-color: #45a049;
+        }
+        select {
+            padding: 10px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            margin-bottom: 10px;
         }
         #message {
             margin-top: 20px;
@@ -124,6 +131,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethers5@2.0.0-beta.4/dist/provider.umd.min.js"></script>
     <script src="../lib/ethers-6.7.0.umd.min.js" onerror="document.getElementById('message').innerText='Failed to load ethers.js. Ensure /lib/ethers-6.7.0.umd.min.js is in the project root.'"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
@@ -137,6 +145,11 @@
         <div class="nft-section">
             <img src="GenesisNFT1.png" alt="NFT Image" class="nft-image" onerror="this.alt='NFT image failed to load. Check if GenesisNFT1.png is in public/'">
             <div class="mint-controls">
+                <label for="wallet-type">Select Wallet:</label>
+                <select id="wallet-type">
+                    <option value="metamask">MetaMask</option>
+                    <option value="walletconnect">WalletConnect</option>
+                </select>
                 <label for="quantity">Select Quantity (1-100):</label>
                 <input type="range" id="quantity" min="1" max="100" value="1">
                 <span id="quantity-value">1</span>
@@ -163,6 +176,7 @@
         let signer;
         let contract;
         let readContract;
+        let walletConnectProvider;
         let mintPrice = 0n;
         let maxSupply = 0;
         let isConnected = false;
@@ -175,7 +189,6 @@
                 return;
             }
             console.log('init: Connecting to Mainnet via Infura');
-            // Using Infura Mainnet provider with your API key
             const readProvider = new ethers.JsonRpcProvider('https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv');
             readContract = new ethers.Contract(contractAddress, abi, readProvider);
             try {
@@ -222,25 +235,58 @@
                 console.error('connectWallet: ethers undefined');
                 return;
             }
-            if (window.ethereum) {
+            const walletType = document.getElementById('wallet-type').value;
+            console.log('connectWallet: Selected wallet type', walletType);
+
+            if (walletType === 'walletconnect') {
                 try {
-                    console.log('connectWallet: Requesting accounts');
-                    provider = new ethers.BrowserProvider(window.ethereum);
-                    await provider.send("eth_requestAccounts", []);
+                    console.log('connectWallet: Initializing WalletConnect');
+                    // Initialize WalletConnect v2 provider
+                    walletConnectProvider = new WalletConnectProvider({
+                        infuraId: '2GQEuel4OBbYmZKDFtjGoOA7ZXv',
+                        chainId: 1, // Ethereum Mainnet
+                        metadata: {
+                            name: 'Genesis NFT Mint',
+                            description: 'Mint Genesis NFTs',
+                            url: window.location.href,
+                            icons: ['https://genesis-nft-mint.vercel.app/GenesisNFT1.png']
+                        }
+                    });
+                    await walletConnectProvider.enable();
+                    console.log('connectWallet: WalletConnect enabled');
+                    provider = new ethers.BrowserProvider(walletConnectProvider);
                     signer = await provider.getSigner();
                     contract = new ethers.Contract(contractAddress, abi, signer);
                     isConnected = true;
                     document.getElementById('connect-button').style.display = 'none';
                     document.getElementById('mint-button').style.display = 'block';
-                    showMessage('Wallet connected!');
-                    console.log('connectWallet: Wallet connected');
+                    showMessage('Wallet connected via WalletConnect!');
+                    console.log('connectWallet: WalletConnect connected');
                 } catch (error) {
-                    showMessage('Connection error: ' + error.message);
-                    console.error('connectWallet: Error', error);
+                    showMessage('WalletConnect error: ' + error.message);
+                    console.error('connectWallet: WalletConnect error', error);
                 }
-            } else {
-                showMessage('Please install MetaMask or another Ethereum wallet.');
-                console.error('connectWallet: No window.ethereum');
+            } else if (walletType === 'metamask') {
+                if (window.ethereum) {
+                    try {
+                        console.log('connectWallet: Requesting MetaMask accounts');
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                        await provider.send("eth_requestAccounts", []);
+                        signer = await provider.getSigner();
+                        contract = new ethers.Contract(contractAddress, abi, signer);
+                        isConnected = true;
+                        document.getElementById('connect-button').style.display = 'none';
+                        document.getElementById('mint-button').style.display = 'block';
+                        showMessage('Wallet connected via MetaMask!');
+                        console.log('connectWallet: MetaMask connected');
+                    } catch (error) {
+                        showMessage('MetaMask connection error: ' + error.message);
+                        console.error('connectWallet: MetaMask error', error);
+                    }
+                } else {
+                    showMessage('Please install MetaMask or another Ethereum wallet.');
+                    console.error('connectWallet: No window.ethereum');
+                }
             }
         }
 
