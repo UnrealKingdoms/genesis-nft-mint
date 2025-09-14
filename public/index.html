@@ -142,20 +142,7 @@
             document.head.appendChild(script);
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js" onerror="loadWeb3ModalFallback()"></script>
-    <script>
-        function loadWeb3ModalFallback() {
-            console.log('Web3Modal CDN failed, trying local fallback');
-            var script = document.createElement('script');
-            script.src = '../lib/web3modal-1.9.12.min.js';
-            script.onerror = function() {
-                console.error('Failed to load Web3Modal from local');
-                document.getElementById('message').innerText = 'Failed to load Web3Modal. Ensure /lib/web3modal-1.9.12.min.js is in the project root.';
-            };
-            document.head.appendChild(script);
-        }
-    </script>
-    <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@web3modal/ethers5@2.7.1/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -201,7 +188,7 @@
 
         async function init() {
             console.log('init: ethers defined?', typeof ethers !== 'undefined');
-            console.log('init: Web3Modal defined?', typeof Web3Modal !== 'undefined');
+            console.log('init: Web3Modal defined?', typeof window.Web3Modal !== 'undefined');
             if (typeof ethers === 'undefined') {
                 showMessage('Error: ethers.js library failed to load.');
                 console.error('init: ethers undefined');
@@ -254,31 +241,33 @@
                 console.error('connectWallet: ethers undefined');
                 return;
             }
-            if (typeof Web3Modal === 'undefined') {
+            if (typeof window.Web3Modal === 'undefined') {
                 showMessage('Error: Web3Modal library failed to load.');
                 console.error('connectWallet: Web3Modal undefined');
                 return;
             }
             try {
                 console.log('connectWallet: Initializing Web3Modal');
-                web3Modal = new Web3Modal({
-                    network: 'mainnet',
-                    cacheProvider: true,
-                    providerOptions: {
-                        walletconnect: {
-                            package: WalletConnectProvider.default,
-                            options: {
-                                infuraId: '2GQEuel4OBbYmZKDFtjGoOA7ZXv',
-                                chainId: 1,
-                                qrcode: true,
-                                rpc: {
-                                    1: 'https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv'
-                                }
-                            }
+                web3Modal = window.Web3Modal.createWeb3Modal({
+                    ethersConfig: {
+                        metadata: {
+                            name: 'Genesis NFT Mint',
+                            description: 'Mint Genesis NFTs',
+                            url: window.location.href,
+                            icons: ['https://genesis-nft-mint.vercel.app/GenesisNFT1.png']
                         }
-                    }
+                    },
+                    chains: [{
+                        chainId: 1,
+                        name: 'Ethereum',
+                        currency: 'ETH',
+                        explorerUrl: 'https://etherscan.io',
+                        rpcUrl: 'https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv'
+                    }],
+                    projectId: '1b283111322d4899186ca0e1474dbf35'
                 });
-                const web3Provider = await web3Modal.connect();
+                await web3Modal.open();
+                const web3Provider = await web3Modal.getProvider();
                 console.log('connectWallet: Web3Modal connected', web3Provider);
                 provider = new ethers.BrowserProvider(web3Provider);
                 signer = await provider.getSigner();
