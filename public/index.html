@@ -12,7 +12,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-image: url('/Genesisback.jpg'); /* Ensure Genesisback.jpg is in public/ */
+            background-image: url('Genesisback.jpg'); /* In public/ with index.html */
             background-size: cover;
             background-position: center;
             font-family: Arial, sans-serif;
@@ -123,34 +123,28 @@
             font-size: 2em;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js" onerror="loadEthersFallback()"></script>
     <script>
-        // Fallback for ethers.js: Try CDN first, then local
-        // Ensure lib/ethers-6.7.0.umd.min.js is in the GitHub repo under /lib
-        (function() {
+        function loadEthersFallback() {
             var script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js';
+            script.src = '../lib/ethers-6.7.0.umd.min.js';
             script.onerror = function() {
-                var localScript = document.createElement('script');
-                localScript.src = '/lib/ethers-6.7.0.umd.min.js';
-                localScript.onerror = function() {
-                    document.getElementById('message').innerText = 'Failed to load ethers.js from both CDN and local. Ensure /lib/ethers-6.7.0.umd.min.js exists in your Vercel project.';
-                };
-                document.head.appendChild(localScript);
+                document.getElementById('message').innerText = 'Failed to load ethers.js. Ensure /lib/ethers-6.7.0.umd.min.js is in the project root.';
             };
             document.head.appendChild(script);
-        })();
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
-    <img src="/Genesishead.png" alt="Title Image" class="title-image" onerror="this.alt='Title image failed to load. Check if Genesishead.png is in public/'"> <!-- Ensure in public/ -->
+    <img src="Genesishead.png" alt="Title Image" class="title-image" onerror="this.alt='Title image failed to load. Check if Genesishead.png is in public/'">
     <div class="container">
         <h1>Genesis NFT Mint</h1>
         <div class="radial-progress" id="radial">
             <div class="progress-text" id="progress-text">0 / 0</div>
         </div>
         <div class="nft-section">
-            <img src="/GenesisNFT1.png" alt="NFT Image" class="nft-image" onerror="this.alt='NFT image failed to load. Check if GenesisNFT1.png is in public/'"> <!-- Ensure in public/ -->
+            <img src="GenesisNFT1.png" alt="NFT Image" class="nft-image" onerror="this.alt='NFT image failed to load. Check if GenesisNFT1.png is in public/'">
             <div class="mint-controls">
                 <label for="quantity">Select Quantity (1-100):</label>
                 <input type="range" id="quantity" min="1" max="100" value="1">
@@ -190,7 +184,7 @@
             // - Mainnet: https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY (sign up at https://infura.io)
             // - Sepolia: https://rpc.sepolia.org
             // - Goerli: https://rpc.goerli.dev
-            const readProvider = new ethers.JsonRpcProvider('https://rpc.sepolia.org'); // Update this!
+            const readProvider = new ethers.JsonRpcProvider('https://rpc.goerli.dev'); // Changed to Goerli; update to correct network
             readContract = new ethers.Contract(contractAddress, abi, readProvider);
             try {
                 const supply = await readContract.totalSupply();
@@ -283,12 +277,14 @@
 
         document.getElementById('quantity').addEventListener('input', updateTotalPrice);
 
-        // Check if ethers is loaded before initializing
-        if (typeof ethers === 'undefined') {
-            showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
-        } else {
-            init();
-        }
+        // Delay init to ensure ethers.js loads
+        setTimeout(() => {
+            if (typeof ethers === 'undefined') {
+                showMessage('Error: ethers.js library failed to load. Ensure the page is served over HTTPS (e.g., via Vercel) and check your network.');
+            } else {
+                init();
+            }
+        }, 1000); // Wait 1 second for script to load
     </script>
 </body>
 </html>
