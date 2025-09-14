@@ -128,7 +128,13 @@
         #congrats h2 {
             font-size: 2em;
         }
+        #root {
+            text-align: center;
+        }
     </style>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js" onerror="loadEthersFallback()"></script>
     <script>
         function loadEthersFallback() {
             console.log('ethers.js CDN failed, trying local fallback');
@@ -140,49 +146,27 @@
             };
             document.head.appendChild(script);
         }
-
-        function loadWeb3ModalFallback() {
-            console.log('Web3Modal CDN failed, trying local fallback');
-            var script = document.createElement('script');
-            script.src = '../lib/web3modal-ethers-3.5.4.min.js';
-            script.onerror = function() {
-                console.error('Failed to load Web3Modal from local');
-                document.getElementById('message').innerText = 'Failed to load Web3Modal. Ensure /lib/web3modal-ethers-3.5.4.min.js is in the project root.';
-            };
-            document.head.appendChild(script);
-        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js" onerror="loadEthersFallback()"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@web3modal/ethers@3.5.4/dist/index.js" onerror="loadWeb3ModalFallback()"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-</head>
-<body>
-    <img src="Genesishead.png" alt="Title Image" class="title-image" onerror="this.alt='Title image failed to load. Check if Genesishead.png is in public/'">
-    <div class="container">
-        <h1>Genesis NFT Mint</h1>
-        <div class="radial-progress" id="radial">
-            <div class="progress-text" id="progress-text">0 / 0</div>
-        </div>
-        <div class="nft-section">
-            <img src="GenesisNFT1.png" alt="NFT Image" class="nft-image" onerror="this.alt='NFT image failed to load. Check if GenesisNFT1.png is in public/'">
-            <div class="mint-controls">
-                <label for="quantity">Select Quantity (1-100):</label>
-                <input type="range" id="quantity" min="1" max="100" value="1">
-                <span id="quantity-value">1</span>
-                <p>Total Price: <span id="total-price">0 ETH</span></p>
-                <button id="connect-button" onclick="connectWallet()">Connect Wallet</button>
-                <button id="mint-button" style="display: none;" onclick="mintNFT()">Mint</button>
-            </div>
-        </div>
-        <div id="message"></div>
-    </div>
-    <div id="congrats">
-        <h2>Congratulations!</h2>
-        <p>You have successfully minted your NFTs!</p>
-    </div>
+    <script type="module">
+        import { createConfig, http } from 'https://cdn.jsdelivr.net/npm/wagmi@2.12.13/+esm';
+        import { mainnet } from 'https://cdn.jsdelivr.net/npm/viem@2.21.31/chains/+esm';
+        import { QueryClient, QueryClientProvider } from 'https://cdn.jsdelivr.net/npm/@tanstack/react-query@5.59.15/+esm';
+        import { WagmiProvider, useAccount, useContractWrite, useWaitForTransactionReceipt } from 'https://cdn.jsdelivr.net/npm/wagmi@2.12.13/+esm';
+        import { RainbowKitProvider, getDefaultConfig, ConnectButton } from 'https://cdn.jsdelivr.net/npm/@rainbow-me/rainbowkit@2.1.5/+esm';
+        import 'https://cdn.jsdelivr.net/npm/@rainbow-me/rainbowkit@2.1.5/dist/index.css/+esm';
 
-    <script>
-        console.log('Main script: Starting');
+        const chains = [mainnet];
+        const config = getDefaultConfig({
+            appName: 'Genesis NFT Mint',
+            projectId: '1b283111322d4899186ca0e1474dbf35',
+            chains,
+            transports: {
+                [mainnet.id]: http('https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv')
+            }
+        });
+
+        const queryClient = new QueryClient();
+
         const contractAddress = '0xfd39CD1F87a237C628C42c0Efde88AC02654B775';
         const abi = [
             {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"ApprovalCallerNotOwnerNorApproved","type":"error"},{"inputs":[],"name":"ApprovalQueryForNonexistentToken","type":"error"},{"inputs":[],"name":"BalanceQueryForZeroAddress","type":"error"},{"inputs":[{"internalType":"uint256","name":"numerator","type":"uint256"},{"internalType":"uint256","name":"denominator","type":"uint256"}],"name":"ERC2981InvalidDefaultRoyalty","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC2981InvalidDefaultRoyaltyReceiver","type":"error"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"numerator","type":"uint256"},{"internalType":"uint256","name":"denominator","type":"uint256"}],"name":"ERC2981InvalidTokenRoyalty","type":"error"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC2981InvalidTokenRoyaltyReceiver","type":"error"},{"inputs":[],"name":"InsufficientEther","type":"error"},{"inputs":[],"name":"InvalidAmount","type":"error"},{"inputs":[],"name":"MintERC2309QuantityExceedsLimit","type":"error"},{"inputs":[],"name":"MintToZeroAddress","type":"error"},{"inputs":[],"name":"MintZeroQuantity","type":"error"},{"inputs":[],"name":"NotCompatibleWithSpotMints","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"OwnerQueryForNonexistentToken","type":"error"},{"inputs":[],"name":"OwnershipNotInitializedForExtraData","type":"error"},{"inputs":[],"name":"SequentialMintExceedsLimit","type":"error"},{"inputs":[],"name":"SequentialUpToTooSmall","type":"error"},{"inputs":[],"name":"SoldOut","type":"error"},{"inputs":[],"name":"SpotMintTokenIdTooSmall","type":"error"},{"inputs":[],"name":"TokenAlreadyExists","type":"error"},{"inputs":[],"name":"TransferCallerNotOwnerNorApproved","type":"error"},{"inputs":[],"name":"TransferFromIncorrectOwner","type":"error"},{"inputs":[],"name":"TransferToNonERC721ReceiverImplementer","type":"error"},{"inputs":[],"name":"TransferToZeroAddress","type":"error"},{"inputs":[],"name":"URIQueryForNonexistentToken","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"fromTokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"toTokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"ConsecutiveTransfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"MAX_SUPPLY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address[]","name":"recipients","type":"address[]"},{"internalType":"uint256[]","name":"_amounts","type":"uint256[]"}],"name":"aidropMultiple","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"baseURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"cost","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"salePrice","type":"uint256"}],"name":"royaltyInfo","outputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_newBaseURI","type":"string"}],"name":"setBaseURI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newCost","type":"uint256"}],"name":"setMintCost","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"result","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"treasuryMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"uriSuffix","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"payable","type":"function"}
@@ -192,19 +176,12 @@
         let signer;
         let contract;
         let readContract;
-        let web3Modal;
         let mintPrice = 0n;
         let maxSupply = 0;
         let isConnected = false;
 
         async function init() {
             console.log('init: ethers defined?', typeof ethers !== 'undefined');
-            console.log('init: Web3Modal defined?', typeof window.Web3Modal !== 'undefined');
-            if (typeof ethers === 'undefined') {
-                showMessage('Error: ethers.js library failed to load.');
-                console.error('init: ethers undefined');
-                return;
-            }
             console.log('init: Connecting to Mainnet via Infura');
             const readProvider = new ethers.JsonRpcProvider('https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv');
             readContract = new ethers.Contract(contractAddress, abi, readProvider);
@@ -245,83 +222,56 @@
             document.getElementById('total-price').innerText = (typeof ethers !== 'undefined' ? ethers.formatEther(total) : '0') + ' ETH';
         }
 
-        async function connectWallet() {
-            console.log('connectWallet: Called');
-            if (typeof ethers === 'undefined') {
-                showMessage('Error: ethers.js library failed to load.');
-                console.error('connectWallet: ethers undefined');
-                return;
-            }
-            if (typeof window.Web3Modal === 'undefined') {
-                showMessage('Error: Web3Modal library failed to load.');
-                console.error('connectWallet: Web3Modal undefined');
-                return;
-            }
-            try {
-                console.log('connectWallet: Initializing Web3Modal');
-                web3Modal = window.Web3Modal.default({
-                    projectId: '1b283111322d4899186ca0e1474dbf35',
-                    metadata: {
-                        name: 'Genesis NFT Mint',
-                        description: 'Mint Genesis NFTs',
-                        url: window.location.href,
-                        icons: ['https://genesis-nft-mint.vercel.app/GenesisNFT1.png']
-                    }
-                });
-                const providerOptions = {
-                    chains: [{
-                        chainId: 1,
-                        name: 'Ethereum',
-                        currency: 'ETH',
-                        explorerUrl: 'https://etherscan.io',
-                        rpcUrl: 'https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv'
-                    }]
-                };
-                await web3Modal.openModal();
-                const web3Provider = await web3Modal.connect(providerOptions);
-                console.log('connectWallet: Web3Modal connected', web3Provider);
-                provider = new ethers.BrowserProvider(web3Provider);
-                signer = await provider.getSigner();
-                contract = new ethers.Contract(contractAddress, abi, signer);
-                isConnected = true;
-                document.getElementById('connect-button').style.display = 'none';
-                document.getElementById('mint-button').style.display = 'block';
-                showMessage('Wallet connected!');
-                console.log('connectWallet: Wallet connected');
-            } catch (error) {
-                showMessage('Wallet connection error: ' + error.message);
-                console.error('connectWallet: Error', error);
-            }
-        }
+        function App() {
+            const { address, isConnected: connected } = useAccount();
+            const { data: hash, write, isPending, isError, error } = useContractWrite({
+                address: contractAddress,
+                abi,
+                functionName: 'mint'
+            });
+            const { isSuccess } = useWaitForTransactionReceipt({ hash });
 
-        async function mintNFT() {
-            console.log('mintNFT: Called with quantity', document.getElementById('quantity').value);
-            if (!isConnected) {
-                showMessage('Please connect your wallet first.');
-                console.error('mintNFT: Wallet not connected');
-                return;
-            }
-            const quantity = document.getElementById('quantity').value;
-            const totalValue = BigInt(quantity) * mintPrice;
-            console.log('mintNFT: Total value', ethers.formatEther(totalValue), 'ETH');
-            try {
-                const tx = await contract.mint(quantity, { value: totalValue });
-                console.log('mintNFT: Transaction sent', tx.hash);
-                showMessage('Transaction sent! Waiting for confirmation...');
-                await tx.wait();
-                showCelebration();
-                const newSupply = await readContract.totalSupply();
-                console.log('mintNFT: New supply', newSupply.toString());
-                updateProgress(Number(newSupply));
-                showMessage('Mint successful!');
-            } catch (error) {
-                console.error('mintNFT: Error', error);
-                if (error.reason && error.reason.includes('SoldOut')) {
-                    showMessage('Error: The NFT collection is sold out.');
+            React.useEffect(() => {
+                if (connected) {
+                    isConnected = true;
+                    document.getElementById('connect-button').style.display = 'none';
+                    document.getElementById('mint-button').style.display = 'block';
+                    showMessage('Wallet connected!');
+                    console.log('App: Wallet connected', address);
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    provider.getSigner().then(s => {
+                        signer = s;
+                        contract = new ethers.Contract(contractAddress, abi, signer);
+                    });
                 } else {
-                    showMessage('Mint error: ' + (error.reason || error.message));
+                    isConnected = false;
+                    document.getElementById('connect-button').style.display = 'block';
+                    document.getElementById('mint-button').style.display = 'none';
+                    showMessage('');
                 }
-            }
+                if (isSuccess) {
+                    showCelebration();
+                    readContract.totalSupply().then(newSupply => {
+                        console.log('App: New supply', newSupply.toString());
+                        updateProgress(Number(newSupply));
+                        showMessage('Mint successful!');
+                    });
+                }
+                if (isError) {
+                    if (error?.message.includes('SoldOut')) {
+                        showMessage('Error: The NFT collection is sold out.');
+                    } else {
+                        showMessage('Mint error: ' + (error?.message || 'Unknown error'));
+                    }
+                    console.error('App: Mint error', error);
+                }
+            }, [connected, isSuccess, isError, error]);
+
+            return React.createElement(
+                'div',
+                { id: 'connect-button' },
+                React.createElement(ConnectButton)
+            );
         }
 
         function showMessage(msg) {
@@ -331,10 +281,12 @@
 
         function showCelebration() {
             console.log('showCelebration: Triggering confetti');
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
+            import('https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/+esm').then(({ default: confetti }) => {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
             });
             document.getElementById('congrats').style.display = 'block';
             setTimeout(() => {
@@ -343,6 +295,24 @@
         }
 
         document.getElementById('quantity').addEventListener('input', updateTotalPrice);
+
+        const { createRoot } = ReactDOM;
+        const root = createRoot(document.getElementById('root'));
+        root.render(
+            React.createElement(
+                QueryClientProvider,
+                { client: queryClient },
+                React.createElement(
+                    WagmiProvider,
+                    { config },
+                    React.createElement(
+                        RainbowKitProvider,
+                        { chains },
+                        React.createElement(App)
+                    )
+                )
+            )
+        );
 
         console.log('Main script: Starting');
         setTimeout(() => {
@@ -354,6 +324,63 @@
                 init();
             }
         }, 1000);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <img src="Genesishead.png" alt="Title Image" class="title-image" onerror="this.alt='Title image failed to load. Check if Genesishead.png is in public/'">
+    <div class="container">
+        <h1>Genesis NFT Mint</h1>
+        <div class="radial-progress" id="radial">
+            <div class="progress-text" id="progress-text">0 / 0</div>
+        </div>
+        <div class="nft-section">
+            <img src="GenesisNFT1.png" alt="NFT Image" class="nft-image" onerror="this.alt='NFT image failed to load. Check if GenesisNFT1.png is in public/'">
+            <div class="mint-controls">
+                <label for="quantity">Select Quantity (1-100):</label>
+                <input type="range" id="quantity" min="1" max="100" value="1">
+                <span id="quantity-value">1</span>
+                <p>Total Price: <span id="total-price">0 ETH</span></p>
+                <div id="root"></div>
+                <button id="mint-button" style="display: none;" onclick="mintNFT()">Mint</button>
+            </div>
+        </div>
+        <div id="message"></div>
+    </div>
+    <div id="congrats">
+        <h2>Congratulations!</h2>
+        <p>You have successfully minted your NFTs!</p>
+    </div>
+
+    <script>
+        function mintNFT() {
+            console.log('mintNFT: Called with quantity', document.getElementById('quantity').value);
+            if (!isConnected) {
+                showMessage('Please connect your wallet first.');
+                console.error('mintNFT: Wallet not connected');
+                return;
+            }
+            const quantity = document.getElementById('quantity').value;
+            const totalValue = BigInt(quantity) * mintPrice;
+            console.log('mintNFT: Total value', ethers.formatEther(totalValue), 'ETH');
+            try {
+                const { write } = useContractWrite({
+                    address: contractAddress,
+                    abi,
+                    functionName: 'mint',
+                    args: [quantity],
+                    value: totalValue
+                });
+                write();
+            } catch (error) {
+                console.error('mintNFT: Error', error);
+                if (error?.message.includes('SoldOut')) {
+                    showMessage('Error: The NFT collection is sold out.');
+                } else {
+                    showMessage('Mint error: ' + (error?.message || 'Unknown error'));
+                }
+            }
+        }
     </script>
 </body>
 </html>
