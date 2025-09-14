@@ -129,7 +129,6 @@
             font-size: 2em;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js" onerror="loadEthersFallback()"></script>
     <script>
         function loadEthersFallback() {
             console.log('ethers.js CDN failed, trying local fallback');
@@ -141,8 +140,20 @@
             };
             document.head.appendChild(script);
         }
+
+        function loadWeb3ModalFallback() {
+            console.log('Web3Modal CDN failed, trying local fallback');
+            var script = document.createElement('script');
+            script.src = '../lib/web3modal-ethers5-2.7.1.min.js';
+            script.onerror = function() {
+                console.error('Failed to load Web3Modal from local');
+                document.getElementById('message').innerText = 'Failed to load Web3Modal. Ensure /lib/web3modal-ethers5-2.7.1.min.js is in the project root.';
+            };
+            document.head.appendChild(script);
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@web3modal/ethers5@2.7.1/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@web3modal/ethers5@5.1.11/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@web3modal/ethers5@5.1.11/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -305,7 +316,11 @@
                 showMessage('Mint successful!');
             } catch (error) {
                 console.error('mintNFT: Error', error);
-                showMessage('Mint error: ' + (error.reason || error.message));
+                if (error.reason && error.reason.includes('SoldOut')) {
+                    showMessage('Error: The NFT collection is sold out.');
+                } else {
+                    showMessage('Mint error: ' + (error.reason || error.message));
+                }
             }
         }
 
