@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genesis NFT Mint</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('Genesisback.jpg'); /* Replace with actual background image URL */
+            background-size: cover;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            position: relative; /* Ensure body can contain fixed elements */
+        }
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transform: translateY(-20vh); /* Move content up by 20% of viewport height */
+        }
+        .title-image {
+            position: fixed; /* Pinned to bottom */
+            bottom: 0;
+            left: 0;
+            width: 100%; /* Stretch to full width */
+            height: auto; /* Maintain aspect ratio */
+            z-index: 0; /* Keep behind content */
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .radial-progress {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background: conic-gradient(#4caf50 0% var(--progress), #ddd var(--progress) 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+        }
+        .radial-progress::before {
+            content: '';
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            background: #222; /* Dark background for inner circle */
+            border-radius: 50%;
+        }
+        .progress-text {
+            position: relative;
+            z-index: 1;
+            font-size: 1.5em;
+        }
+        .nft-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .nft-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+        .mint-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        #quantity-value {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        #total-price {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: red;
+        }
+        #congrats {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        #congrats h2 {
+            font-size: 2em;
+        }
+    </style>
+    <script>
+        // Fallback for ethers.js: Try CDN first, then local
+        (function() {
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js';
+            script.onerror = function() {
+                var localScript = document.createElement('script');
+                localScript.src = 'lib/ethers-6.7.0.umd.min.js';
+                localScript.onerror = function() {
+                    document.getElementById('message').innerText = 'Failed to load ethers.js from both CDN and local. Ensure lib/ethers-6.7.0.umd.min.js exists or check your network.';
+                };
+                document.head.appendChild(localScript);
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <img src="Genesishead.png" alt="Title Image" class="title-image"> <!-- Moved to bottom -->
+    <div class="container">
+        <h1>Genesis NFT Mint</h1>
+        <div class="radial-progress" id="radial">
+            <div class="progress-text" id="progress-text">0 / 0</div>
+        </div>
+        <div class="nft-section">
+            <img src="GenesisNFT1.png" alt="NFT Image" class="nft-image"> <!-- Replace with actual NFT image URL -->
+            <div class="mint-controls">
+                <label for="quantity">Select Quantity (1-100):</label>
+                <input type="range" id="quantity" min="1" max="100" value="1">
+                <span id="quantity-value">1</span>
+                <p>Total Price: <span id="total-price">0 ETH</span></p>
+                <button id="connect-button" onclick="connectWallet()">Connect Wallet</button>
+                <button id="mint-button" style="display: none;" onclick="mintNFT()">Mint</button>
+            </div>
+        </div>
+        <div id="message"></div>
+    </div>
+    <div id="congrats">
+        <h2>Congratulations!</h2>
+        <p>You have successfully minted your NFTs!</p>
+    </div>
+
+    <script>
+        const contractAddress = '0xfd39CD1F87a237C628C42c0Efde88AC02654B775';
+        const abi = [
+            {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"ApprovalCallerNotOwnerNorApproved","type":"error"},{"inputs":[],"name":"ApprovalQueryForNonexistentToken","type":"error"},{"inputs":[],"name":"BalanceQueryForZeroAddress","type":"error"},{"inputs":[{"internalType":"uint256","name":"numerator","type":"uint256"},{"internalType":"uint256","name":"denominator","type":"uint256"}],"name":"ERC2981InvalidDefaultRoyalty","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC2981InvalidDefaultRoyaltyReceiver","type":"error"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"numerator","type":"uint256"},{"internalType":"uint256","name":"denominator","type":"uint256"}],"name":"ERC2981InvalidTokenRoyalty","type":"error"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC2981InvalidTokenRoyaltyReceiver","type":"error"},{"inputs":[],"name":"InsufficientEther","type":"error"},{"inputs":[],"name":"InvalidAmount","type":"error"},{"inputs":[],"name":"MintERC2309QuantityExceedsLimit","type":"error"},{"inputs":[],"name":"MintToZeroAddress","type":"error"},{"inputs":[],"name":"MintZeroQuantity","type":"error"},{"inputs":[],"name":"NotCompatibleWithSpotMints","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"OwnerQueryForNonexistentToken","type":"error"},{"inputs":[],"name":"OwnershipNotInitializedForExtraData","type":"error"},{"inputs":[],"name":"SequentialMintExceedsLimit","type":"error"},{"inputs":[],"name":"SequentialUpToTooSmall","type":"error"},{"inputs":[],"name":"SoldOut","type":"error"},{"inputs":[],"name":"SpotMintTokenIdTooSmall","type":"error"},{"inputs":[],"name":"TokenAlreadyExists","type":"error"},{"inputs":[],"name":"TransferCallerNotOwnerNorApproved","type":"error"},{"inputs":[],"name":"TransferFromIncorrectOwner","type":"error"},{"inputs":[],"name":"TransferToNonERC721ReceiverImplementer","type":"error"},{"inputs":[],"name":"TransferToZeroAddress","type":"error"},{"inputs":[],"name":"URIQueryForNonexistentToken","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"fromTokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"toTokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"ConsecutiveTransfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"MAX_SUPPLY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address[]","name":"recipients","type":"address[]"},{"internalType":"uint256[]","name":"_amounts","type":"uint256[]"}],"name":"aidropMultiple","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"baseURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"cost","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"salePrice","type":"uint256"}],"name":"royaltyInfo","outputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_newBaseURI","type":"string"}],"name":"setBaseURI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newCost","type":"uint256"}],"name":"setMintCost","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"result","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"treasuryMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"uriSuffix","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"payable","type":"function"}
+        ];
+
+        let provider;
+        let signer;
+        let contract;
+        let readContract;
+        let mintPrice = 0n;
+        let maxSupply = 0;
+        let isConnected = false;
+
+        async function init() {
+            if (typeof ethers === 'undefined') {
+                showMessage('Error: ethers.js library failed to load. Please serve the page via a local server (e.g., npx http-server) or check your network.');
+                return;
+            }
+            // Update provider URL based on the network where the contract is deployed
+            // Mainnet: https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY
+            // Sepolia: https://rpc.sepolia.org
+            // Goerli: https://rpc.goerli.dev
+            const readProvider = new ethers.JsonRpcProvider('https://rpc.sepolia.org'); // Changed to Sepolia for testing; update as needed
+            readContract = new ethers.Contract(contractAddress, abi, readProvider);
+            try {
+                const supply = await readContract.totalSupply();
+                mintPrice = await readContract.cost();
+                maxSupply = Number(await readContract.MAX_SUPPLY());
+                updateProgress(Number(supply));
+                updateTotalPrice();
+            } catch (error) {
+                if (error.code === 'CALL_EXCEPTION') {
+                    showMessage('Error: Contract not found on this network or network issue. Please check the contract address and network (e.g., Mainnet, Sepolia).');
+                } else if (error.code === 'NETWORK_ERROR') {
+                    showMessage('Error: Failed to connect to the blockchain network. Please check your provider URL or network connectivity.');
+                } else {
+                    showMessage('Error loading contract data: ' + (error.reason || error.message));
+                }
+            }
+        }
+
+        function updateProgress(current) {
+            const progress = maxSupply > 0 ? (current / maxSupply) * 100 : 0;
+            document.getElementById('radial').style.setProperty('--progress', progress + '%');
+            document.getElementById('progress-text').innerText = `${current} / ${maxSupply}`;
+        }
+
+        function updateTotalPrice() {
+            const quantity = document.getElementById('quantity').value;
+            document.getElementById('quantity-value').innerText = quantity;
+            const total = BigInt(quantity) * mintPrice;
+            document.getElementById('total-price').innerText = (typeof ethers !== 'undefined' ? ethers.formatEther(total) : '0') + ' ETH';
+        }
+
+        async function connectWallet() {
+            if (typeof ethers === 'undefined') {
+                showMessage('Error: ethers.js library failed to load. Please serve the page via a local server (e.g., npx http-server) or check your network.');
+                return;
+            }
+            if (window.ethereum) {
+                try {
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    signer = await provider.getSigner();
+                    contract = new ethers.Contract(contractAddress, abi, signer);
+                    isConnected = true;
+                    document.getElementById('connect-button').style.display = 'none';
+                    document.getElementById('mint-button').style.display = 'block';
+                    showMessage('Wallet connected!');
+                } catch (error) {
+                    showMessage('Connection error: ' + error.message);
+                }
+            } else {
+                showMessage('Please install MetaMask or another Ethereum wallet.');
+            }
+        }
+
+        async function mintNFT() {
+            if (!isConnected) {
+                showMessage('Please connect your wallet first.');
+                return;
+            }
+            const quantity = document.getElementById('quantity').value;
+            const totalValue = BigInt(quantity) * mintPrice;
+            try {
+                const tx = await contract.mint(quantity, { value: totalValue });
+                showMessage('Transaction sent! Waiting for confirmation...');
+                await tx.wait();
+                showCelebration();
+                const newSupply = await readContract.totalSupply();
+                updateProgress(Number(newSupply));
+                showMessage('Mint successful!');
+            } catch (error) {
+                showMessage('Mint error: ' + (error.reason || error.message));
+            }
+        }
+
+        function showMessage(msg) {
+            document.getElementById('message').innerText = msg;
+        }
+
+        function showCelebration() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            document.getElementById('congrats').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('congrats').style.display = 'none';
+            }, 5000);
+        }
+
+        document.getElementById('quantity').addEventListener('input', updateTotalPrice);
+
+        // Check if ethers is loaded before initializing
+        if (typeof ethers === 'undefined') {
+            showMessage('Error: ethers.js library failed to load. Please serve the page via a local server (e.g., npx http-server) or check your network.');
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
