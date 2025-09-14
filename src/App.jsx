@@ -17,20 +17,20 @@ function App() {
 
     const { address, isConnected } = useAccount();
 
-    const { data: totalSupply } = useContractRead({
+    const { data: totalSupply, error: totalSupplyError } = useContractRead({
         address: contractAddress,
         abi,
         functionName: 'totalSupply',
         watch: true
     });
 
-    const { data: cost } = useContractRead({
+    const { data: cost, error: costError } = useContractRead({
         address: contractAddress,
         abi,
         functionName: 'cost'
     });
 
-    const { data: maxSupply } = useContractRead({
+    const { data: maxSupply, error: maxSupplyError } = useContractRead({
         address: contractAddress,
         abi,
         functionName: 'MAX_SUPPLY'
@@ -45,7 +45,19 @@ function App() {
     const { isSuccess } = useWaitForTransactionReceipt({ hash });
 
     useEffect(() => {
-        console.log('App: Running useEffect');
+        console.log('App: Running useEffect', { isConnected, address, totalSupply, cost, maxSupply });
+        if (totalSupplyError) {
+            console.error('App: totalSupply error', totalSupplyError);
+            setMessage('Error reading totalSupply: ' + totalSupplyError.message);
+        }
+        if (costError) {
+            console.error('App: cost error', costError);
+            setMessage('Error reading cost: ' + costError.message);
+        }
+        if (maxSupplyError) {
+            console.error('App: MAX_SUPPLY error', maxSupplyError);
+            setMessage('Error reading MAX_SUPPLY: ' + maxSupplyError.message);
+        }
         if (isConnected) {
             console.log('App: Wallet connected', address);
             setMessage('Wallet connected!');
@@ -72,7 +84,7 @@ function App() {
                 setMessage('Mint error: ' + (error?.message || 'Unknown error'));
             }
         }
-    }, [isConnected, isSuccess, isError, error, address]);
+    }, [isConnected, isSuccess, isError, error, address, totalSupply, cost, maxSupply, totalSupplyError, costError, maxSupplyError]);
 
     const handleMint = () => {
         console.log('mintNFT: Called with quantity', quantity);
@@ -81,7 +93,12 @@ function App() {
             console.error('mintNFT: Wallet not connected');
             return;
         }
-        const totalValue = BigInt(quantity) * BigInt(cost || 0);
+        if (!cost) {
+            setMessage('Error: Contract cost not loaded.');
+            console.error('mintNFT: Cost not loaded');
+            return;
+        }
+        const totalValue = BigInt(quantity) * BigInt(cost);
         console.log('mintNFT: Total value', ethers.formatEther(totalValue), 'ETH');
         write({ args: [quantity], value: totalValue });
     };
@@ -100,7 +117,10 @@ function App() {
                     src="/GenesisNFT1.png"
                     alt="NFT Image"
                     className="nft-image"
-                    onError={(e) => (e.target.alt = 'NFT image failed to load. Check if GenesisNFT1.png is in public/')}
+                    onError={(e) => {
+                        console.error('App: NFT image failed to load');
+                        e.target.alt = 'NFT image failed to load. Check if GenesisNFT1.png is in public/';
+                    }}
                 />
                 <div className="mint-controls">
                     <label htmlFor="quantity">Select Quantity (1-100):</label>

@@ -7,6 +7,8 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import App from './App.jsx';
 import '@rainbow-me/rainbowkit/styles.css';
 
+console.log('main.jsx: Initializing');
+
 const config = createConfig({
     chains: [mainnet],
     connectors: [
@@ -20,12 +22,17 @@ const config = createConfig({
 
 const queryClient = new QueryClient();
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-    <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={config}>
-            <RainbowKitProvider chains={[mainnet]}>
-                <App />
-            </RainbowKitProvider>
-        </WagmiProvider>
-    </QueryClientProvider>
-);
+try {
+    ReactDOM.createRoot(document.getElementById('root')).render(
+        <QueryClientProvider client={queryClient}>
+            <WagmiProvider config={config}>
+                <RainbowKitProvider chains={[mainnet]}>
+                    <App />
+                </RainbowKitProvider>
+            </WagmiProvider>
+        </QueryClientProvider>
+    );
+    console.log('main.jsx: Rendered successfully');
+} catch (error) {
+    console.error('main.jsx: Render error', error);
+}
