@@ -48,18 +48,23 @@
             justify-content: center;
             align-items: center;
             margin: 0 auto 20px;
+            z-index: 1; /* Ensure the conic-gradient is above the inner circle */
         }
         .radial-progress::before {
             content: '';
             position: absolute;
-            width: 180px;
-            height: 180px;
+            top: 20px; /* Center within 200px container */
+            left: 20px;
+            width: 160px; /* Reduced to show more radial fill */
+            height: 160px;
             background: #222;
-            border-radius: 50;
+            border: 2px solid #4caf50; /* Added for visual clarity */
+            border-radius: 50%;
+            z-index: -1; /* Place behind conic-gradient and text */
         }
         .progress-text {
             position: relative;
-            z-index: 1;
+            z-index: 2; /* Ensure text is above both conic-gradient and inner circle */
             font-size: 1.5em;
         }
         .nft-section {
@@ -195,7 +200,7 @@
 
         async function init() {
             console.log('init: ethers defined?', typeof ethers !== 'undefined');
-            console.log('init: WalletConnectProvider defined?', typeof WalletConnectProvider !== 'undefined');
+            console.log('init: WalletConnectProvider defined?', typeof WalletConnectProvider);
             if (typeof ethers === 'undefined') {
                 showMessage('Error: ethers.js library failed to load.');
                 console.error('init: ethers undefined');
@@ -252,14 +257,14 @@
             console.log('connectWallet: Selected wallet type', walletType);
 
             if (walletType === 'walletconnect') {
-                if (typeof WalletConnectProvider === 'undefined') {
+                if (typeof WalletConnectProvider === 'undefined' || !WalletConnectProvider.default) {
                     showMessage('Error: WalletConnect library failed to load.');
-                    console.error('connectWallet: WalletConnectProvider undefined');
+                    console.error('connectWallet: WalletConnectProvider or default undefined');
                     return;
                 }
                 try {
                     console.log('connectWallet: Initializing WalletConnect');
-                    walletConnectProvider = new WalletConnectProvider({
+                    walletConnectProvider = new WalletConnectProvider.default({
                         infuraId: '2GQEuel4OBbYmZKDFtjGoOA7ZXv',
                         chainId: 1,
                         qrcode: true,
