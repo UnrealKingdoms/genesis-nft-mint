@@ -48,23 +48,23 @@
             justify-content: center;
             align-items: center;
             margin: 0 auto 20px;
-            z-index: 1; /* Ensure the conic-gradient is above the inner circle */
+            z-index: 1;
         }
         .radial-progress::before {
             content: '';
             position: absolute;
-            top: 20px; /* Center within 200px container */
+            top: 20px;
             left: 20px;
-            width: 160px; /* Reduced to show more radial fill */
+            width: 160px;
             height: 160px;
             background: #222;
-            border: 2px solid #4caf50; /* Added for visual clarity */
+            border: 2px solid #4caf50;
             border-radius: 50%;
-            z-index: -1; /* Place behind conic-gradient and text */
+            z-index: -1;
         }
         .progress-text {
             position: relative;
-            z-index: 2; /* Ensure text is above both conic-gradient and inner circle */
+            z-index: 2;
             font-size: 1.5em;
         }
         .nft-section {
@@ -109,12 +109,6 @@
         button:hover {
             background-color: #45a049;
         }
-        select {
-            padding: 10px;
-            font-size: 1.2em;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
         #message {
             margin-top: 20px;
             font-size: 1.2em;
@@ -148,6 +142,7 @@
             document.head.appendChild(script);
         }
     </script>
+    <script src="https://unpkg.com/web3modal@1.9.14/dist/index.js"></script>
     <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
@@ -161,11 +156,6 @@
         <div class="nft-section">
             <img src="GenesisNFT1.png" alt="NFT Image" class="nft-image" onerror="this.alt='NFT image failed to load. Check if GenesisNFT1.png is in public/'">
             <div class="mint-controls">
-                <label for="wallet-type">Select Wallet:</label>
-                <select id="wallet-type">
-                    <option value="metamask">MetaMask</option>
-                    <option value="walletconnect">WalletConnect</option>
-                </select>
                 <label for="quantity">Select Quantity (1-100):</label>
                 <input type="range" id="quantity" min="1" max="100" value="1">
                 <span id="quantity-value">1</span>
@@ -182,8 +172,7 @@
     </div>
 
     <script>
-        console.log('Main script: Starting, connectWallet defined?', typeof connectWallet);
-        console.log('Main script: WalletConnectProvider defined?', typeof WalletConnectProvider);
+        console.log('Main script: Starting');
         const contractAddress = '0xfd39CD1F87a237C628C42c0Efde88AC02654B775';
         const abi = [
             {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"ApprovalCallerNotOwnerNorApproved","type":"error"},{"inputs":[],"name":"ApprovalQueryForNonexistentToken","type":"error"},{"inputs":[],"name":"BalanceQueryForZeroAddress","type":"error"},{"inputs":[{"internalType":"uint256","name":"numerator","type":"uint256"},{"internalType":"uint256","name":"denominator","type":"uint256"}],"name":"ERC2981InvalidDefaultRoyalty","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC2981InvalidDefaultRoyaltyReceiver","type":"error"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"numerator","type":"uint256"},{"internalType":"uint256","name":"denominator","type":"uint256"}],"name":"ERC2981InvalidTokenRoyalty","type":"error"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC2981InvalidTokenRoyaltyReceiver","type":"error"},{"inputs":[],"name":"InsufficientEther","type":"error"},{"inputs":[],"name":"InvalidAmount","type":"error"},{"inputs":[],"name":"MintERC2309QuantityExceedsLimit","type":"error"},{"inputs":[],"name":"MintToZeroAddress","type":"error"},{"inputs":[],"name":"MintZeroQuantity","type":"error"},{"inputs":[],"name":"NotCompatibleWithSpotMints","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"OwnerQueryForNonexistentToken","type":"error"},{"inputs":[],"name":"OwnershipNotInitializedForExtraData","type":"error"},{"inputs":[],"name":"SequentialMintExceedsLimit","type":"error"},{"inputs":[],"name":"SequentialUpToTooSmall","type":"error"},{"inputs":[],"name":"SoldOut","type":"error"},{"inputs":[],"name":"SpotMintTokenIdTooSmall","type":"error"},{"inputs":[],"name":"TokenAlreadyExists","type":"error"},{"inputs":[],"name":"TransferCallerNotOwnerNorApproved","type":"error"},{"inputs":[],"name":"TransferFromIncorrectOwner","type":"error"},{"inputs":[],"name":"TransferToNonERC721ReceiverImplementer","type":"error"},{"inputs":[],"name":"TransferToZeroAddress","type":"error"},{"inputs":[],"name":"URIQueryForNonexistentToken","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"fromTokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"toTokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"ConsecutiveTransfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"MAX_SUPPLY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address[]","name":"recipients","type":"address[]"},{"internalType":"uint256[]","name":"_amounts","type":"uint256[]"}],"name":"aidropMultiple","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"baseURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"cost","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"salePrice","type":"uint256"}],"name":"royaltyInfo","outputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_newBaseURI","type":"string"}],"name":"setBaseURI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newCost","type":"uint256"}],"name":"setMintCost","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"result","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"treasuryMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"uriSuffix","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"payable","type":"function"}
@@ -193,14 +182,14 @@
         let signer;
         let contract;
         let readContract;
-        let walletConnectProvider;
+        let web3Modal;
         let mintPrice = 0n;
         let maxSupply = 0;
         let isConnected = false;
 
         async function init() {
             console.log('init: ethers defined?', typeof ethers !== 'undefined');
-            console.log('init: WalletConnectProvider defined?', typeof WalletConnectProvider);
+            console.log('init: Web3Modal defined?', typeof Web3Modal !== 'undefined');
             if (typeof ethers === 'undefined') {
                 showMessage('Error: ethers.js library failed to load.');
                 console.error('init: ethers undefined');
@@ -253,60 +242,43 @@
                 console.error('connectWallet: ethers undefined');
                 return;
             }
-            const walletType = document.getElementById('wallet-type').value;
-            console.log('connectWallet: Selected wallet type', walletType);
-
-            if (walletType === 'walletconnect') {
-                if (typeof WalletConnectProvider === 'undefined' || !WalletConnectProvider.default) {
-                    showMessage('Error: WalletConnect library failed to load.');
-                    console.error('connectWallet: WalletConnectProvider or default undefined');
-                    return;
-                }
-                try {
-                    console.log('connectWallet: Initializing WalletConnect');
-                    walletConnectProvider = new WalletConnectProvider.default({
-                        infuraId: '2GQEuel4OBbYmZKDFtjGoOA7ZXv',
-                        chainId: 1,
-                        qrcode: true,
-                        rpc: {
-                            1: 'https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv'
+            if (typeof Web3Modal === 'undefined') {
+                showMessage('Error: Web3Modal library failed to load.');
+                console.error('connectWallet: Web3Modal undefined');
+                return;
+            }
+            try {
+                console.log('connectWallet: Initializing Web3Modal');
+                web3Modal = new Web3Modal({
+                    network: 'mainnet',
+                    cacheProvider: true,
+                    providerOptions: {
+                        walletconnect: {
+                            package: WalletConnectProvider.default,
+                            options: {
+                                infuraId: '2GQEuel4OBbYmZKDFtjGoOA7ZXv',
+                                chainId: 1,
+                                qrcode: true,
+                                rpc: {
+                                    1: 'https://mainnet.infura.io/v3/2GQEuel4OBbYmZKDFtjGoOA7ZXv'
+                                }
+                            }
                         }
-                    });
-                    await walletConnectProvider.enable();
-                    console.log('connectWallet: WalletConnect enabled');
-                    provider = new ethers.BrowserProvider(walletConnectProvider);
-                    signer = await provider.getSigner();
-                    contract = new ethers.Contract(contractAddress, abi, signer);
-                    isConnected = true;
-                    document.getElementById('connect-button').style.display = 'none';
-                    document.getElementById('mint-button').style.display = 'block';
-                    showMessage('Wallet connected via WalletConnect!');
-                    console.log('connectWallet: WalletConnect connected');
-                } catch (error) {
-                    showMessage('WalletConnect error: ' + error.message);
-                    console.error('connectWallet: WalletConnect error', error);
-                }
-            } else if (walletType === 'metamask') {
-                if (window.ethereum) {
-                    try {
-                        console.log('connectWallet: Requesting MetaMask accounts');
-                        provider = new ethers.BrowserProvider(window.ethereum);
-                        await provider.send("eth_requestAccounts", []);
-                        signer = await provider.getSigner();
-                        contract = new ethers.Contract(contractAddress, abi, signer);
-                        isConnected = true;
-                        document.getElementById('connect-button').style.display = 'none';
-                        document.getElementById('mint-button').style.display = 'block';
-                        showMessage('Wallet connected via MetaMask!');
-                        console.log('connectWallet: MetaMask connected');
-                    } catch (error) {
-                        showMessage('MetaMask connection error: ' + error.message);
-                        console.error('connectWallet: MetaMask error', error);
                     }
-                } else {
-                    showMessage('Please install MetaMask or another Ethereum wallet.');
-                    console.error('connectWallet: No window.ethereum');
-                }
+                });
+                const web3Provider = await web3Modal.connect();
+                console.log('connectWallet: Web3Modal connected', web3Provider);
+                provider = new ethers.BrowserProvider(web3Provider);
+                signer = await provider.getSigner();
+                contract = new ethers.Contract(contractAddress, abi, signer);
+                isConnected = true;
+                document.getElementById('connect-button').style.display = 'none';
+                document.getElementById('mint-button').style.display = 'block';
+                showMessage('Wallet connected!');
+                console.log('connectWallet: Wallet connected');
+            } catch (error) {
+                showMessage('Wallet connection error: ' + error.message);
+                console.error('connectWallet: Error', error);
             }
         }
 
@@ -356,7 +328,7 @@
 
         document.getElementById('quantity').addEventListener('input', updateTotalPrice);
 
-        console.log('Main script: Starting, connectWallet defined?', typeof connectWallet);
+        console.log('Main script: Starting');
         setTimeout(() => {
             console.log('Main script: Checking ethers after delay');
             if (typeof ethers === 'undefined') {
