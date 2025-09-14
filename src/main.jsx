@@ -23,7 +23,12 @@ const config = createConfig({
 const queryClient = new QueryClient();
 
 try {
-    ReactDOM.createRoot(document.getElementById('root')).render(
+    const rootElement = document.getElementById('root');
+    if (!rootElement) {
+        console.error('main.jsx: Root element not found');
+        throw new Error('Root element not found');
+    }
+    ReactDOM.createRoot(rootElement).render(
         <QueryClientProvider client={queryClient}>
             <WagmiProvider config={config}>
                 <RainbowKitProvider chains={[mainnet]}>
